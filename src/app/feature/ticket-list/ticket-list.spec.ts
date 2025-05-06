@@ -1,4 +1,11 @@
-import { render, screen, within } from '@testing-library/angular';
+import {
+  getAllByTestId,
+  getByLabelText,
+  getByText,
+  render,
+  screen,
+  within,
+} from '@testing-library/angular';
 import userEvent from '@testing-library/user-event';
 import TicketListComponent from './ticket-list.component';
 import { TicketsService } from '../../data-access/tickets.service';
@@ -71,23 +78,22 @@ describe('TicketListComponent', () => {
 
   describe('Render States', () => {
     it('should show loading state when tickets are not loaded', async () => {
-      // TODO: Implement this test by:
-      // 1. Render the component with isLoaded: false
-      // 2. Check if the "Loading..." text is visible on the screen
+      await renderComponent({ isLoaded: false });
+      screen.getByTestId('loading-message');
     });
 
     it('should show error message when there is an error', async () => {
-      // TODO: Implement this test by:
-      // 1. Define an error message
-      // 2. Render the component with the error message
-      // 3. Verify that the error message appears on the screen
+      const errorMessage = 'Failed to load tickets';
+      await renderComponent({ error: errorMessage });
+      screen.getByText(errorMessage);
     });
 
     it('should render ticket items when tickets are loaded without errors', async () => {
-      // TODO: Implement this test by:
-      // 1. Render the component with default settings
-      // 2. Check if the number of ticket items matches mockTickets.length
-      // 3. Verify that the ticket titles are displayed on the screen
+      await renderComponent();
+      const ticketItems = screen.getAllByTestId(/ticket-item-/);
+      expect(ticketItems.length).toBe(mockTickets.length);
+      screen.getByText(mockTickets[0].title);
+      screen.getByText(mockTickets[1].title);
     });
 
     it('should render the filter-sort component', async () => {
@@ -99,14 +105,24 @@ describe('TicketListComponent', () => {
 
   describe('Event Handling', () => {
     it('should forward create event from ticket-form to ticketService', async () => {
-      // TODO: Implement this test by:
-      // 1. Set up userEvent
-      // 2. Render the component
-      // 3. Create a spy on mockTicketsService.createTicket$.next
-      // 4. Define a new ticket object
-      // 5. Fill out the form inputs (title, description, status)
-      // 6. Click the create button
-      // 7. Verify that the spy was called with the new ticket
+      const user = userEvent.setup();
+      await renderComponent();
+      const spy = jest.spyOn(mockTicketsService.createTicket$!, 'next');
+      const newTicket = {
+        title: 'New Ticket',
+        description: 'Description for new ticket',
+        status: 'open',
+      };
+      const titleInput = screen.getByLabelText(/title/i);
+      const descriptionInput = screen.getByLabelText(/description/i);
+      const statusSelect = screen.getByLabelText(/^status$/i);
+      const createButton = screen.getByRole('button', { name: /create/i });
+
+      await user.type(titleInput, newTicket.title);
+      await user.type(descriptionInput, newTicket.description);
+      await user.selectOptions(statusSelect, newTicket.status);
+      await user.click(createButton);
+      expect(spy).toHaveBeenCalledWith(newTicket);
     });
 
     it('should forward filter changes to ticketService', async () => {

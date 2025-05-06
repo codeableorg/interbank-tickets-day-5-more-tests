@@ -2,7 +2,9 @@
   <h1>Ticket Management</h1>
 
   <div class="create-ticket-section">
-    <app-ticket-form (create)="ticketService.createTicket$.next($event)"></app-ticket-form>
+    <app-ticket-form
+      (create)="ticketService.createTicket$.next($event)"
+    ></app-ticket-form>
   </div>
 
   <app-filter-sort
@@ -14,17 +16,15 @@
 
   <div class="tickets-list">
     @if (!ticketService.loaded()) {
-      <p>Loading...</p>
+    <p data-testid="loading-message">Wait a second...</p>
     } @else if (ticketService.error()) {
-      <p>{{ ticketService.error() }}</p>
-    } @else {
-      @for (ticket of ticketService.tickets(); track ticket.id) {
-        <app-ticket-item
-          [ticket]="ticket"
-          (statusChange)="ticketService.changeStatus$.next($event)"
-          (delete)="ticketService.deleteTicket$.next($event)"
-        ></app-ticket-item>
-      }
-    }
+    <p>{{ ticketService.error() }}</p>
+    } @else { @for (ticket of ticketService.tickets(); track ticket.id) {
+    <app-ticket-item
+      [ticket]="ticket"
+      (statusChange)="ticketService.changeStatus$.next($event)"
+      (delete)="ticketService.deleteTicket$.next($event)"
+    ></app-ticket-item>
+    } }
   </div>
 </div>
